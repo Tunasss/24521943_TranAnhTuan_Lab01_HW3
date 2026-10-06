@@ -33,3 +33,29 @@ export function createMachine(onChange) {
     }
   };
 }
+
+/**
+ * Normalizes untrusted text: strips control characters, collapses whitespace,
+ * trims and limits the length.
+ *
+ * @param {unknown} value - Raw user input.
+ * @param {number} max - Maximum allowed length.
+ * @returns {string}
+ */
+export function normalize(value, max) {
+  return String(value)
+    .replace(/[\u0000-\u001F\u007F]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, max);
+}
+
+/**
+ * Escapes HTML special characters. Only for the rare case of string-building;
+ * user data is rendered with textContent instead.
+ *
+ * @param {string} s
+ * @returns {string}
+ */
+export const escapeHTML = (s) =>
+  s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
