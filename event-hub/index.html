@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Event Hub</title>
+  <meta name="description" content="Resilient event landing page with a drift-free countdown and a safe registration form.">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/hub.css">
+</head>
+<body>
+  <main>
+    <h1>Your Event Name</h1>
+    <p>
+      Starts
+      <time id="event-time" datetime="2026-12-31T17:00:00Z">31 Dec 2026, 17:00 UTC</time>
+    </p>
+
+    <section aria-labelledby="countdown-title">
+      <h2 id="countdown-title">Countdown</h2>
+      <div id="countdown" role="timer">
+        <span id="cd-days">--</span> days
+        <span id="cd-hours">--</span> h
+        <span id="cd-minutes">--</span> m
+        <span id="cd-seconds">--</span> s
+      </div>
+    </section>
+
+    <section aria-labelledby="register-title">
+      <h2 id="register-title">Register</h2>
+      <form id="register-form" novalidate data-state="idle">
+        <!-- name, email, notes, submit button: bạn tự thiết kế, label gắn đúng id -->
+      </form>
+      <p id="form-status" role="status"></p>
+      <h3>Recent registrations</h3>
+      <ul id="attendees"></ul>
+    </section>
+  </main>
+</body>
+</html>
