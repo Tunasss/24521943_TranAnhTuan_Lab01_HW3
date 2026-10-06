@@ -20,15 +20,14 @@ export function getRemaining(targetMs, nowMs = Date.now()) {
 }
 
 /**
- * Starts a 1-second interval countdown toward a UTC ISO 8601 target.
- * Fires `onTick` immediately on start and repeats every second until finished or stopped.
+ * Starts a self-aligning countdown toward a UTC ISO 8601 target.
+ * Fires `onTick` immediately on start and repeats aligned to the next second until finished or stopped.
  * 
  * @param {string} targetIso - ISO 8601 string (e.g. "2026-12-31T23:59:59Z").
  * @param {(state: ReturnType<typeof getRemaining>) => void} onTick - Callback receiving remaining time state.
  * @returns {() => void} Function to manually stop the timer.
  */
 export function startCountdown(targetIso, onTick) {
-  // Test A: Kiểm tra bắt buộc phải có UTC offset
   if (typeof targetIso !== 'string' || !/(?:Z|[+-]\d{2}:\d{2})$/.test(targetIso)) {
     throw new TypeError(`Target ISO string must include a UTC offset (e.g., 'Z' or '+07:00'): "${targetIso}"`);
   }
@@ -42,14 +41,27 @@ export function startCountdown(targetIso, onTick) {
   let timerId = null;
   let active = true;
 
+  const clearTimer = () => {
+    if (timerId !== null) {
+      clearTimeout(timerId);
+      timerId = null;
+    }
+  };
+
   const stop = () => {
     if (active) {
       active = false;
-      if (timerId !== null) {
-        clearInterval(timerId);
-        timerId = null;
-      }
+      clearTimer();
     }
+  };
+
+  const scheduleNextTick = (total) => {
+    clearTimer();
+    if (!active || total <= 0) return;
+
+    // Test D: Căn chỉnh delay sang giây tiếp theo: (total % 1000) + 1
+    const delay = (total % 1000) + 1;
+    timerId = setTimeout(tick, delay);
   };
 
   const tick = () => {
@@ -60,14 +72,12 @@ export function startCountdown(targetIso, onTick) {
 
     if (remaining.done) {
       stop();
+    } else {
+      scheduleNextTick(remaining.total);
     }
   };
 
   tick();
-
-  if (active) {
-    timerId = setInterval(tick, 1000);
-  }
 
   return stop;
 }
