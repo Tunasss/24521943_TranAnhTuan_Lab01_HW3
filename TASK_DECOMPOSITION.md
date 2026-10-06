@@ -6,9 +6,11 @@ Assignment: HW3. HW1 is in [TASK_DECOMPOSITION.md](TASK_DECOMPOSITION.md) and HW
 ## 0. Overview
 
 ### Goal
+
 A resilient event landing page built in three slices (drift-free countdown, state-machine form, double-submit prevention and input sanitization), plus a mandatory `AI_FAILURE_AUDIT.md` (15% of the grade) documenting three AI-induced defects I actually found during review.
 
 ### Rules I must follow
+
 - **Three slices**, each with its own atomic commit(s): Slice 1 countdown, Slice 2 state-machine form, Slice 3 double-submit prevention and sanitization.
 - **Git audit rule:** at least **5 atomic commits** corresponding to the slices.
 - **No one-shot prompting:** I never pass the whole assignment to an AI in one prompt. One narrow prompt per slice.
@@ -18,8 +20,9 @@ A resilient event landing page built in three slices (drift-free countdown, stat
 - **Live defense:** I must be able to explain any line in my git history.
 
 ### Planned commit order
+
 | # | Slice | Commit message |
-|---|-------|----------------|
+| --- | ------- | ---------------- |
 | 0 | Plan | `docs: add HW3 task decomposition and audit template` |
 | 1 | Markup | `feat(hub): add event hub markup with UTC event time` |
 | 2 | Slice 1 | `feat(countdown): draft countdown engine (AI, unreviewed)` + one `fix(countdown): ...` commit per defect + `feat(countdown): wire countdown to the page` |
@@ -29,16 +32,19 @@ A resilient event landing page built in three slices (drift-free countdown, stat
 | 6 | Audit | `docs(audit): add AI_FAILURE_AUDIT.md` |
 
 ### Architecture
+
 ```
 index.html (UTC time in <time datetime="...Z">, form, status, list)
       |
 main.js ──> countdown.js   (pure math + clock-based scheduling, no DOM)
       └───> form.js ───────> form-machine.js (pure state machine, no DOM)
 ```
+
 - `countdown.js` and `form-machine.js` are pure and testable without a browser.
 - `form.js` is the only layer that touches the form's DOM; it reads the machine state and renders it.
 
 ### Target structure
+
 ```
 event-hub/
 ├── index.html
@@ -53,17 +59,20 @@ docs/evidence/        # hw3-*.png screenshots
 ```
 
 ### Git workflow for each slice
+
 1. `git checkout main && git pull`, then `git checkout -b <branch>`.
 2. Commit the raw AI draft, review it, then commit each fix separately.
 3. Open a small PR and merge with a **merge commit** (not squash), delete the branch.
 
 ### How to run and test
+
 - `npx serve .` then open `http://localhost:3000/event-hub/`.
 - Do not use Live Server for CSP checks (it injects an inline script).
 
 ---
 
 ## Slice 0: Markup
+
 - **Branch:** `feat/hw3-markup`
 - **Goal:** semantic page whose single source of truth for the event time is a UTC ISO 8601 timestamp.
 - **Files touched:** `event-hub/index.html`, `event-hub/css/hub.css`
@@ -77,6 +86,7 @@ docs/evidence/        # hw3-*.png screenshots
 - **Commit:** `feat(hub): add event hub markup with UTC event time`
 
 ## Slice 1: Drift-free countdown (UTC ISO 8601)
+
 - **Branch:** `feat/hw3-countdown`
 - **Goal:** a countdown that stays correct under timer throttling, a busy main thread, hidden tabs, and any viewer timezone.
 - **Files touched:** `event-hub/js/countdown.js`, `event-hub/js/main.js`, `event-hub/index.html`
@@ -107,13 +117,14 @@ docs/evidence/        # hw3-*.png screenshots
 - **Commits:** draft commit, one `fix(countdown): ...` per defect, `feat(countdown): wire countdown to the page`
 
 ## Slice 2: State-machine form
+
 - **Branch:** `feat/hw3-form-state`
 - **Goal:** the form is always in exactly one state and moves only along allowed transitions.
 - **Files touched:** `event-hub/js/form-machine.js`, `event-hub/js/form.js`, `event-hub/index.html`, `event-hub/js/main.js`
 - **Transition table:**
 
   | From | Allowed next states |
-  |------|---------------------|
+  | ------ | --------------------- |
   | idle | submitting |
   | submitting | success, error |
   | success | idle |
@@ -129,6 +140,7 @@ docs/evidence/        # hw3-*.png screenshots
 - **Commit:** `feat(form): add state-machine form (idle/submitting/success/error)`
 
 ## Slice 3a: Double-submit prevention
+
 - **Branch:** `feat/hw3-double-submit`
 - **Goal:** one logical submission produces exactly one request, however the user or code triggers it.
 - **Files touched:** `event-hub/js/form.js`
@@ -141,6 +153,7 @@ docs/evidence/        # hw3-*.png screenshots
 - **Commit:** `fix(form): prevent double submit`
 
 ## Slice 3b: Input sanitization (zero XSS)
+
 - **Branch:** `feat/hw3-sanitize`
 - **Goal:** no user-provided string can ever be interpreted as HTML.
 - **Files touched:** `event-hub/js/form.js`, `event-hub/js/form-machine.js`, `event-hub/index.html`
@@ -158,6 +171,7 @@ docs/evidence/        # hw3-*.png screenshots
 ---
 
 ## Part B: AI_FAILURE_AUDIT.md (15%)
+
 - **Branch:** `docs/hw3-audit`
 - **Goal:** document three AI-induced defects I caught during review, each with description, diagnosis, and a verified fix.
 - **Files touched:** `AI_FAILURE_AUDIT.md`, `docs/evidence/*`
@@ -173,11 +187,13 @@ docs/evidence/        # hw3-*.png screenshots
 ---
 
 ## Live defense plan
+
 1. Practice `git log --oneline --graph --all`, `git show <hash>`, `git log -p -- <file>`, `git blame <file>`, and `git diff <draft> <fix>`.
 2. For every line of `countdown.js`, `form-machine.js`, and `form.js`, be ready to say what it does, why it is written that way, and what breaks without it.
 3. Be ready to demonstrate live: timezone switch in Sensors, blocking the main thread, double submit via `requestSubmit()`, and an XSS payload.
 
 ### Questions I must be able to answer
+
 1. Why UTC ISO 8601 with a `Z` suffix?
 2. Why must the countdown never decrement a counter?
 3. Why `setTimeout` re-armed each tick instead of `setInterval`?
@@ -190,6 +206,7 @@ docs/evidence/        # hw3-*.png screenshots
 10. Which defect in my audit was the most severe, and why?
 
 ## Self-check before submission
+
 - [ ] At least 5 atomic commits, each tied to a slice, with accurate messages
 - [ ] Countdown reads only the UTC `datetime`; identical across timezones
 - [ ] Blocked-thread and hidden-tab tests pass; loop stops at zero; `stop()` cleans up
