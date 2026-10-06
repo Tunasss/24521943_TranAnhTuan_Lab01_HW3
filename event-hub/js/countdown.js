@@ -25,7 +25,7 @@ export function getRemaining(targetMs, nowMs = Date.now()) {
  * 
  * @param {string} targetIso - ISO 8601 string (e.g. "2026-12-31T23:59:59Z").
  * @param {(state: ReturnType<typeof getRemaining>) => void} onTick - Callback receiving remaining time state.
- * @returns {() => void} Function to manually stop the timer.
+ * @returns {() => void} Function to manually stop the timer and clean up listeners.
  */
 export function startCountdown(targetIso, onTick) {
   if (typeof targetIso !== 'string' || !/(?:Z|[+-]\d{2}:\d{2})$/.test(targetIso)) {
@@ -48,10 +48,21 @@ export function startCountdown(targetIso, onTick) {
     }
   };
 
+  // Test E: Handler cập nhật ngay khi tab hiển thị lại
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === 'visible' && active) {
+      tick();
+    }
+  };
+
   const stop = () => {
-    if (active) {
-      active = false;
-      clearTimer();
+    if (!active) return;
+    active = false;
+    clearTimer();
+
+    // Test E: Gỡ bỏ event listener khi dừng timer
+    if (typeof document !== 'undefined' && typeof document.removeEventListener === 'function') {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     }
   };
 
@@ -59,7 +70,6 @@ export function startCountdown(targetIso, onTick) {
     clearTimer();
     if (!active || total <= 0) return;
 
-    // Test D: Căn chỉnh delay sang giây tiếp theo: (total % 1000) + 1
     const delay = (total % 1000) + 1;
     timerId = setTimeout(tick, delay);
   };
@@ -76,6 +86,11 @@ export function startCountdown(targetIso, onTick) {
       scheduleNextTick(remaining.total);
     }
   };
+
+  // Test E: Đăng ký listener visibilitychange (kiểm tra môi trường browser trước)
+  if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+  }
 
   tick();
 
