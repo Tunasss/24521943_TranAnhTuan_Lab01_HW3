@@ -25,6 +25,7 @@ function sanitizeText(input) {
  * Rejects emails ending in @fail.test after 1s delay.
  */
 async function mockRegister({ email }) {
+  console.count('request sent');
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   const cleanEmail = sanitizeText(email).toLowerCase();
@@ -105,6 +106,7 @@ if (form) {
     const cleanNotes = sanitizeText(rawNotes);
 
     const payload = {
+      idempotencyKey: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
       name: cleanName,
       email: cleanEmail,
       notes: cleanNotes,
