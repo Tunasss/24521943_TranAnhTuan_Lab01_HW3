@@ -1,24 +1,13 @@
 // form.js
-import { createMachine } from './form-machine.js';
+import { createMachine, normalize } from './form-machine.js';
 
 // Elements
 const form = document.querySelector('#register-form');
 const status = document.querySelector('#form-status');
 const attendeesList = document.querySelector('#attendees');
 
-/**
- * Normalizes and sanitizes plain text inputs.
- * Strips control characters and trims outer whitespace.
- * 
- * @param {string} input - Raw user input.
- * @returns {string} Sanitized string.
- */
-function sanitizeText(input) {
-  if (typeof input !== 'string') return '';
-  return input
-    .replace(/[\x00-\x1F\x7F]/g, '') // Strip control characters
-    .trim();
-}
+// Max lengths mirror the maxlength attributes in index.html
+const MAX = { name: 50, email: 100, notes: 200 };
 
 /**
  * Mock server request simulation.
@@ -28,7 +17,7 @@ async function mockRegister({ email }) {
   console.count('request sent');
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  const cleanEmail = sanitizeText(email).toLowerCase();
+  const cleanEmail = normalize(email, MAX.email).toLowerCase();
   if (cleanEmail.endsWith('@fail.test')) {
     throw new Error('Registration failed: Email domain rejected.');
   }
@@ -97,13 +86,9 @@ if (form) {
     }
 
     const formData = new FormData(form);
-    const rawName = String(formData.get('name') || '');
-    const rawEmail = String(formData.get('email') || '');
-    const rawNotes = String(formData.get('notes') || '');
-
-    const cleanName = sanitizeText(rawName);
-    const cleanEmail = sanitizeText(rawEmail);
-    const cleanNotes = sanitizeText(rawNotes);
+    const cleanName = normalize(formData.get('name') ?? '', MAX.name);
+    const cleanEmail = normalize(formData.get('email') ?? '', MAX.email);
+    const cleanNotes = normalize(formData.get('notes') ?? '', MAX.notes);
 
     const payload = {
       idempotencyKey: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
@@ -116,10 +101,20 @@ if (form) {
       await mockRegister(payload);
       machine.go('success');
 
-      // Add user to recent attendees safely with textContent (zero XSS sink)
-      if (attendeesList && cleanName) {
+      // Thank-you message with the user's name (textContent only, never innerHTML)
+      if (status) status.textContent = `Thanks, ${cleanName}!`;
+
+      // Recent attendees: name + notes, built with createElement + textContent
+      if (attendeesList) {
         const li = document.createElement('li');
-        li.textContent = `${cleanName} (${cleanEmail})`;
+        const strong = document.createElement('strong');
+        strong.textContent = cleanName;
+        li.append(strong);
+        if (cleanNotes) {
+          const note = document.createElement('span');
+          note.textContent = ` — ${cleanNotes}`;
+          li.append(note);
+        }
         attendeesList.prepend(li);
       }
 
