@@ -28,6 +28,11 @@ export function getRemaining(targetMs, nowMs = Date.now()) {
  * @returns {() => void} Function to manually stop the timer.
  */
 export function startCountdown(targetIso, onTick) {
+  // Test A: Kiểm tra bắt buộc phải có UTC offset
+  if (typeof targetIso !== 'string' || !/(?:Z|[+-]\d{2}:\d{2})$/.test(targetIso)) {
+    throw new TypeError(`Target ISO string must include a UTC offset (e.g., 'Z' or '+07:00'): "${targetIso}"`);
+  }
+
   const targetMs = Date.parse(targetIso);
 
   if (Number.isNaN(targetMs)) {
@@ -58,7 +63,6 @@ export function startCountdown(targetIso, onTick) {
     }
   };
 
-  // Immediate invocation so consumer does not wait 1s for the first tick
   tick();
 
   if (active) {
