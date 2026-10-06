@@ -1,42 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta http-equiv="Content-Security-Policy"
     content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Event Hub</title>
-  <meta name="description" content="Resilient event landing page with a drift-free countdown and a safe registration form.">
+  <meta name="description"
+    content="Resilient event landing page with a drift-free countdown and a safe registration form.">
   <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/hub.css">
+  <script src="js/main.js" type="module" defer></script>
 </head>
-<body>
-  <main>
-    <h1>Your Event Name</h1>
-    <p>
-      Starts
-      <time id="event-time" datetime="2026-12-31T17:00:00Z">31 Dec 2026, 17:00 UTC</time>
-    </p>
 
-    <section aria-labelledby="countdown-title">
-      <h2 id="countdown-title">Countdown</h2>
-      <div id="countdown" role="timer">
-        <span id="cd-days">--</span> days
-        <span id="cd-hours">--</span> h
-        <span id="cd-minutes">--</span> m
-        <span id="cd-seconds">--</span> s
+<body>
+  <main class="container">
+    <header class="event-header">
+      <h1>Tech Conference 2026</h1>
+      <p class="event-time-wrapper">
+        Starts:
+        <time id="event-time" datetime="2026-12-31T17:00:00Z">31 Dec 2026, 17:00 UTC</time>
+      </p>
+    </header>
+
+    <section class="card" aria-labelledby="countdown-title">
+      <h2 id="countdown-title">Event Countdown</h2>
+      <div id="countdown" role="timer" aria-live="polite">
+        <div class="time-box"><span id="cd-days">--</span><label>Days</label></div>
+        <div class="time-box"><span id="cd-hours">--</span><label>Hours</label></div>
+        <div class="time-box"><span id="cd-minutes">--</span><label>Mins</label></div>
+        <div class="time-box"><span id="cd-seconds">--</span><label>Secs</label></div>
       </div>
     </section>
 
-    <section aria-labelledby="register-title">
-      <h2 id="register-title">Register</h2>
+    <section class="card" aria-labelledby="register-title">
+      <h2 id="register-title">Register for Event</h2>
       <form id="register-form" novalidate data-state="idle">
-        <!-- name, email, notes, submit button: bạn tự thiết kế, label gắn đúng id -->
+        <div class="form-group">
+          <label for="reg-name">Full Name *</label>
+          <input type="text" id="reg-name" name="name" required maxlength="50" placeholder="e.g. John Doe"
+            autocomplete="name">
+        </div>
+
+        <div class="form-group">
+          <label for="reg-email">Email Address *</label>
+          <input type="email" id="reg-email" name="email" required maxlength="100" placeholder="e.g. john@example.com"
+            autocomplete="email">
+        </div>
+
+        <div class="form-group">
+          <label for="reg-notes">Notes / Special Requests</label>
+          <textarea id="reg-notes" name="notes" maxlength="200" rows="3"
+            placeholder="Any requests or dietary needs..."></textarea>
+        </div>
+
+        <button type="submit" id="reg-submit-btn" class="btn">Register Now</button>
       </form>
-      <p id="form-status" role="status"></p>
-      <h3>Recent registrations</h3>
-      <ul id="attendees"></ul>
+
+      <p id="form-status" role="status" aria-live="polite" class="status-msg"></p>
+
+      <div class="attendees-section">
+        <h3>Recent Registrations</h3>
+        <ul id="attendees" class="attendees-list"></ul>
+      </div>
     </section>
   </main>
 </body>
+
 </html>
